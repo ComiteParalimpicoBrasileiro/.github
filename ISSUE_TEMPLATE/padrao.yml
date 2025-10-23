@@ -1,0 +1,92 @@
+name: "✨ Nova issue (padrão da organização)"
+description: "Use este formulário para abrir issues seguindo nosso padrão."
+title: "[Tipo] Breve resumo da demanda"
+labels:
+  - triage
+assignees: [ ]
+
+body:
+  - type: dropdown
+    id: tipo
+    attributes:
+      label: Tipo
+      description: Selecione o tipo de issue.
+      options:
+        - Bug
+        - Feature
+        - Task
+        - Spike
+    validations:
+      required: true
+
+  - type: textarea
+    id: descricao
+    attributes:
+      label: Descrição
+      description: Explique o que precisa ser feito/alterado.
+      placeholder: Contexto, objetivos e escopo da alteração.
+    validations:
+      required: true
+
+  - type: textarea
+    id: contexto
+    attributes:
+      label: Contexto / Motivação
+      description: Por que isso é importante agora?
+      placeholder:
+        Ex.: problema de negócio, métrica afetada, demanda do cliente...
+    validations:
+      required: false
+
+  - type: textarea
+    id: criterios_aceite
+    attributes:
+      label: Critérios de Aceite
+      description: Liste critérios objetivos em formato de checklist.
+      value: |
+        - [ ] Critério 1
+        - [ ] Critério 2
+        - [ ] Critério 3
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproducao
+    attributes:
+      label: Passos para Reproduzir (se for Bug)
+      description: Detalhe como reproduzir o problema.
+      placeholder: |
+        1. Passo 1
+        2. Passo 2
+        3. Resultado atual
+        4. Resultado esperado
+    validations:
+      required: false
+
+  - type: input
+    id: impacto
+    attributes:
+      label: Impacto / Urgência
+      description: Qual o impacto (baixo/médio/alto) e urgência (quando precisa)?
+      placeholder:
+        Ex.: Alto impacto — precisa até 2025-11-05
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: validacoes
+    attributes:
+      label: Validações iniciais
+      options:
+        - label: A história/escopo está claro
+        - label: Critérios de aceite são testáveis
+        - label: Dependências (outros times/sistemas) mapeadas
+        - label: Atualização de docs prevista (se aplicável)
+
+  - type: textarea
+    id: anexos
+    attributes:
+      label: Anexos / Referências
+      description: Links para PRDs, designs, logs, prints, etc.
+      placeholder: Cole aqui URLs ou observações.
