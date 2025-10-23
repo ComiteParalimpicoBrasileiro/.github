@@ -5,7 +5,7 @@ body:
   - type: textarea
     id: conteudo
     attributes:
-      label: "Descrição"
+      label: " "
       description: Preencha as seções abaixo conforme o tipo da issue.
       value: |
         ### **Descrição**
