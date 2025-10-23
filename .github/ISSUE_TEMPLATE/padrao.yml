@@ -1,7 +1,7 @@
 name: "✨ Nova issue (padrão da organização)"
 description: "Use este formulário para abrir issues seguindo nosso padrão."
 title: "Breve resumo da demanda"
-labels: []
+labels: [ ]
 
 body:
   - type: dropdown
@@ -18,53 +18,40 @@ body:
       required: true
 
   - type: textarea
-    id: descricao
+    id: conteudo
     attributes:
-      label: Descrição
-      description: Explique o que precisa ser feito/alterado.
-      placeholder: "Contexto, objetivos e escopo da alteração."
-    validations:
-      required: true
-
-  - type: textarea
-    id: contexto
-    attributes:
-      label: Contexto / Motivação
-      description: Por que isso é importante agora?
-      placeholder: >-
-        Ex.: problema de negócio, métrica afetada, demanda do cliente...
-    validations:
-      required: false
-
-  - type: textarea
-    id: criterios_aceite
-    attributes:
-      label: Critérios de Aceite
-      description: Liste critérios objetivos em formato de checklist.
+      label: Detalhamento da Demanda
+      description: Preencha as seções abaixo conforme o tipo da issue.
       value: |
-        - [] Critério 1
-      render: markdown
+        ### **Descrição**
+        Contexto, objetivos e escopo da alteração.
+
+        ---
+
+        ### **Regras de negócio**
+        Condições, restrições, comportamentos esperados do sistema.
+
+        ---
+
+        ### **Critérios de aceite**
+        - [ ] Critério 1
+
+        ---
+
+        ### **Passos para reprodução (se for Bug)**
+        1. Passo 1
+
+        ---
+
+        ### **Impacto / Urgência**
+        Ex.: Alto impacto — precisa até 2025-11-05
+
+        ---
+
+        ### **Anexos / Referências**
+        Links para PRDs, designs, logs, prints, etc.
     validations:
       required: true
-
-  - type: textarea
-    id: reproducao
-    attributes:
-      label: Passos para Reproduzir (se for Bug)
-      description: Detalhe como reproduzir o problema.
-      placeholder: |
-        1. Passo 1
-    validations:
-      required: false
-
-  - type: input
-    id: impacto
-    attributes:
-      label: Impacto / Urgência
-      description: Qual o impacto (baixo/médio/alto) e urgência (quando precisa)?
-      placeholder: "Ex.: Alto impacto — precisa até 2025-11-05"
-    validations:
-      required: false
 
   - type: checkboxes
     id: validacoes
@@ -75,10 +62,3 @@ body:
         - label: Critérios de aceite são testáveis
         - label: Dependências (outros times/sistemas) mapeadas
         - label: Atualização de docs prevista (se aplicável)
-
-  - type: textarea
-    id: anexos
-    attributes:
-      label: Anexos / Referências
-      description: Links para PRDs, designs, logs, prints, etc.
-      placeholder: "Cole aqui URLs ou observações."
