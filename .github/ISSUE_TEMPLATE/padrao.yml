@@ -1,22 +1,9 @@
-name: "✨ Nova issue (padrão da organização)"
+name: "Nova issue  - padrão"
 description: "Use este formulário para abrir issues seguindo nosso padrão."
 title: "Breve resumo da demanda"
 labels: [ ]
 
 body:
-  - type: dropdown
-    id: tipo
-    attributes:
-      label: Tipo
-      description: Selecione o tipo de issue.
-      options:
-        - Bug
-        - Feature
-        - Task
-        - Discovery
-    validations:
-      required: true
-
   - type: textarea
     id: conteudo
     attributes:
@@ -24,41 +11,24 @@ body:
       description: Preencha as seções abaixo conforme o tipo da issue.
       value: |
         ### **Descrição**
-        Contexto, objetivos e escopo da alteração.
-
+        
         ---
 
         ### **Regras de negócio**
-        Condições, restrições, comportamentos esperados do sistema.
-
+        
         ---
 
         ### **Critérios de aceite**
-        - [ ] Critério 1
+        - [] Critério 1
 
         ---
 
-        ### **Passos para reprodução (se for Bug)**
+        ### **Passos para reprodução**
         1. Passo 1
 
         ---
 
-        ### **Impacto / Urgência**
-        Ex.: Alto impacto — precisa até 2025-11-05
+        ### **Anexos**
 
-        ---
-
-        ### **Anexos / Referências**
-        Links para PRDs, designs, logs, prints, etc.
     validations:
       required: true
-
-  - type: checkboxes
-    id: validacoes
-    attributes:
-      label: Validações iniciais
-      options:
-        - label: A história/escopo está claro
-        - label: Critérios de aceite são testáveis
-        - label: Dependências (outros times/sistemas) mapeadas
-        - label: Atualização de docs prevista (se aplicável)
