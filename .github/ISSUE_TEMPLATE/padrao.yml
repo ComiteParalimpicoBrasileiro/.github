@@ -1,7 +1,5 @@
 name: "Nova issue  - padrão"
 description: "Use este formulário para abrir issues seguindo nosso padrão."
-title: ""
-labels: [ ]
 
 body:
   - type: textarea
