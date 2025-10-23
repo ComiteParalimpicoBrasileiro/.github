@@ -1,8 +1,7 @@
 name: "✨ Nova issue (padrão da organização)"
 description: "Use este formulário para abrir issues seguindo nosso padrão."
-title: "[Tipo] Breve resumo da demanda"
-labels: []   # deixei vazio p/ não depender de label existir
-# assignees: []  # opcional
+title: "Breve resumo da demanda"
+labels: []
 
 body:
   - type: dropdown
@@ -14,7 +13,7 @@ body:
         - Bug
         - Feature
         - Task
-        - Spike
+        - Discovery
     validations:
       required: true
 
@@ -43,9 +42,7 @@ body:
       label: Critérios de Aceite
       description: Liste critérios objetivos em formato de checklist.
       value: |
-        - [ ] Critério 1
-        - [ ] Critério 2
-        - [ ] Critério 3
+        - [] Critério 1
       render: markdown
     validations:
       required: true
@@ -57,9 +54,6 @@ body:
       description: Detalhe como reproduzir o problema.
       placeholder: |
         1. Passo 1
-        2. Passo 2
-        3. Resultado atual
-        4. Resultado esperado
     validations:
       required: false
 
