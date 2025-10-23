@@ -1,12 +1,11 @@
-name: "Nova issue  - padrão"
+name: "Nova issue - padrão"
 description: "Use este formulário para abrir issues seguindo nosso padrão."
 
 body:
   - type: textarea
     id: conteudo
     attributes:
-      label: " "
-      description: Preencha as seções abaixo conforme o tipo da issue.
+      label: ""  # mantém o campo renderizado sem exibir título
       value: |
         ### **Descrição**
         
@@ -27,6 +26,5 @@ body:
         ---
 
         ### **Anexos**
-
     validations:
       required: true
