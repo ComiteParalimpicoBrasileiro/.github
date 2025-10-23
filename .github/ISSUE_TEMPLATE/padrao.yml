@@ -1,6 +1,6 @@
 name: "Nova issue  - padrão"
 description: "Use este formulário para abrir issues seguindo nosso padrão."
-title: "Breve resumo da demanda"
+title: ""
 labels: [ ]
 
 body:
