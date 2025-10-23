@@ -5,7 +5,6 @@ body:
   - type: textarea
     id: conteudo
     attributes:
-      label: Detalhamento da Demanda
       description: Preencha as seções abaixo conforme o tipo da issue.
       value: |
         ### **Descrição**
