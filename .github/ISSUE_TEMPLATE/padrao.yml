@@ -1,9 +1,8 @@
 name: "✨ Nova issue (padrão da organização)"
 description: "Use este formulário para abrir issues seguindo nosso padrão."
 title: "[Tipo] Breve resumo da demanda"
-labels:
-  - triage
-assignees: [ ]
+labels: []   # deixei vazio p/ não depender de label existir
+# assignees: []  # opcional
 
 body:
   - type: dropdown
@@ -24,7 +23,7 @@ body:
     attributes:
       label: Descrição
       description: Explique o que precisa ser feito/alterado.
-      placeholder: Contexto, objetivos e escopo da alteração.
+      placeholder: "Contexto, objetivos e escopo da alteração."
     validations:
       required: true
 
@@ -33,7 +32,7 @@ body:
     attributes:
       label: Contexto / Motivação
       description: Por que isso é importante agora?
-      placeholder:
+      placeholder: >-
         Ex.: problema de negócio, métrica afetada, demanda do cliente...
     validations:
       required: false
@@ -69,8 +68,7 @@ body:
     attributes:
       label: Impacto / Urgência
       description: Qual o impacto (baixo/médio/alto) e urgência (quando precisa)?
-      placeholder:
-        Ex.: Alto impacto — precisa até 2025-11-05
+      placeholder: "Ex.: Alto impacto — precisa até 2025-11-05"
     validations:
       required: false
 
@@ -89,4 +87,4 @@ body:
     attributes:
       label: Anexos / Referências
       description: Links para PRDs, designs, logs, prints, etc.
-      placeholder: Cole aqui URLs ou observações.
+      placeholder: "Cole aqui URLs ou observações."
