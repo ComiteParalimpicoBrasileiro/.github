@@ -1,11 +1,7 @@
 name: Bloquear merge da staging em outras branches
 
 on:
-  push:
-    branches-ignore:
-      - staging
-      - master
-  pull_request:
+  workflow_call:
 
 jobs:
   bloquear-merge-staging:
