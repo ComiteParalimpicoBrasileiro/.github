@@ -1,0 +1,34 @@
+name: Bloquear merge da staging em outras branches
+
+on:
+  push:
+    branches-ignore:
+      - staging
+      - master
+  pull_request:
+
+jobs:
+  bloquear-merge-staging:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # Necessário para buscar histórico completo
+
+      - name: Buscar branch staging
+        run: git fetch origin staging
+
+      - name: Verificar se staging foi mesclada nesta branch
+        run: |
+          STAGING_SHA=$(git rev-parse origin/staging)
+
+          # Lista commits de merge feitos após o estado atual da staging
+          if git rev-list --merges --parents origin/staging..HEAD | grep "$STAGING_SHA"; then
+            echo "❌ Esta branch contém merge da branch 'staging'."
+            echo "   Não é permitido trazer código da staging para outras branches."
+            exit 1
+          fi
+
+          echo "✅ Nenhum merge indevido com 'staging' foi encontrado."
