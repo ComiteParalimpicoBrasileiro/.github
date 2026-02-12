@@ -2,6 +2,12 @@ name: Bloquear merge da staging em outras branches
 
 on:
   workflow_call:
+    inputs:
+      base_ref:
+        description: 'Branch de destino do PR (github.base_ref)'
+        required: false
+        type: string
+        default: ''
 
 jobs:
   bloquear-merge-staging:
@@ -17,7 +23,25 @@ jobs:
         run: git fetch origin staging
 
       - name: Verificar se staging foi mesclada nesta branch
+        env:
+          # Usa o input passado pelo workflow chamador, ou o github.base_ref direto
+          BASE_BRANCH: ${{ inputs.base_ref || github.base_ref || '' }}
         run: |
+          echo "📌 Branch de destino (base_ref): '$BASE_BRANCH'"
+          
+          # Se o PR está sendo aberto PARA a staging, não há problema
+          if [ "$BASE_BRANCH" = "staging" ]; then
+            echo "✅ PR direcionado para staging. Verificação não aplicável."
+            exit 0
+          fi
+          
+          # Se não conseguimos determinar a branch de destino, mostramos aviso mas não bloqueamos
+          if [ -z "$BASE_BRANCH" ]; then
+            echo "⚠️  Não foi possível determinar a branch de destino."
+            echo "   Certifique-se de passar 'base_ref: \${{ github.base_ref }}' ao chamar este workflow."
+            echo "   Continuando com a verificação..."
+          fi
+
           STAGING_SHA=$(git rev-parse origin/staging)
 
           # Lista commits de merge feitos após o estado atual da staging
