@@ -1,4 +1,5 @@
 name: PR requested changes -> Check Returns
+
 on:
   workflow_call:
     secrets:
@@ -35,21 +36,25 @@ on:
       repository_name:
         required: true
         type: string
+
 permissions:
   contents: read
   pull-requests: read
   issues: read
+
 jobs:
   move-linked-issues:
     name: Move linked issues to Check Returns
     runs-on: ubuntu-latest
     timeout-minutes: 10
+
     env:
       GH_TOKEN: ${{ secrets.GH_PROJECT_TOKEN }}
       GH_ORG: ${{ inputs.gh_org }}
       GH_PROJECT_NUMBER: ${{ inputs.gh_project_number }}
       GH_PROJECT_STATUS_FIELD_NAME: Status
       GH_PROJECT_STATUS_OPTION_NAME: CHECK RETURNS
+
     steps:
       - name: Validate required configuration
         run: |
@@ -57,24 +62,30 @@ jobs:
           test -n "${GH_TOKEN}" || (echo "Secret GH_PROJECT_TOKEN nao configurado" && exit 1)
           test -n "${GH_ORG}" || (echo "Input gh_org nao configurado" && exit 1)
           test -n "${GH_PROJECT_NUMBER}" || (echo "Input gh_project_number nao configurado" && exit 1)
+
       - name: Resolve PR number
         id: pr
         run: |
           set -euo pipefail
+
           if [ -n "${{ inputs.pr_number }}" ]; then
             PR_NUMBER="${{ inputs.pr_number }}"
           else
             PR_NUMBER="${{ inputs.pr_number_event }}"
           fi
+
           test -n "${PR_NUMBER}" || (echo "PR number nao encontrado" && exit 1)
+
           echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
           echo "PR number resolvido: ${PR_NUMBER}"
+
       - name: Log event
         run: |
           echo "Repository: ${{ inputs.repository }}"
           echo "Event name: ${{ inputs.event_name }}"
           echo "PR number: ${{ steps.pr.outputs.pr_number }}"
           echo "Review state: ${{ inputs.review_state }}"
+
       - name: Find linked issues from PR (GraphQL)
         id: linked
         shell: bash
@@ -84,6 +95,7 @@ jobs:
           PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
         run: |
           set -euo pipefail
+
           echo "Buscando issues vinculadas ao PR #${PR_NUMBER} via GraphQL..."
           gh api graphql \
             -F owner="$REPO_OWNER" \
@@ -108,23 +120,28 @@ jobs:
                 }
               }
             ' > linked_issues.json
+
           ISSUES="$(jq -c '[.data.repository.pullRequest.closingIssuesReferences.nodes[] | {number: .number, owner: .repository.owner.login, repo: .repository.name}]' linked_issues.json)"
           echo "Issues vinculadas: ${ISSUES}"
           echo "issues=${ISSUES}" >> "$GITHUB_OUTPUT"
+
       - name: Show linked issues
         run: |
           echo "Issues: ${{ steps.linked.outputs.issues }}"
+
       - name: Exit if no linked issues
         if: ${{ steps.linked.outputs.issues == '' || steps.linked.outputs.issues == '[]' }}
         run: |
           echo "Nenhuma issue vinculada encontrada."
           exit 0
+
       - name: Update linked issues in Project V2
         shell: bash
         env:
           LINKED_ISSUES: ${{ steps.linked.outputs.issues }}
         run: |
           set -euo pipefail
+
           echo "Obtendo Project V2 e campo de Status..."
           gh api graphql \
             -F org="$GH_ORG" \
@@ -155,12 +172,14 @@ jobs:
                 }
               }
             ' > project_data.json
+
           PROJECT_ID="$(jq -r '.data.organization.projectV2.id' project_data.json)"
           STATUS_FIELD_ID="$(jq -r --arg NAME "$GH_PROJECT_STATUS_FIELD_NAME" '
             .data.organization.projectV2.fields.nodes[]
             | select(.name == $NAME)
             | .id
           ' project_data.json | head -n1)"
+
           STATUS_OPTION_ID="$(jq -r --arg FIELD "$GH_PROJECT_STATUS_FIELD_NAME" --arg OPTION "$GH_PROJECT_STATUS_OPTION_NAME" '
             .data.organization.projectV2.fields.nodes[]
             | select(.name == $FIELD)
@@ -168,19 +187,25 @@ jobs:
             | select(.name == $OPTION)
             | .id
           ' project_data.json | head -n1)"
+
           test -n "${PROJECT_ID}" && [ "${PROJECT_ID}" != "null" ] || (echo "Project V2 nao encontrado" && exit 1)
           test -n "${STATUS_FIELD_ID}" && [ "${STATUS_FIELD_ID}" != "null" ] || (echo "Campo '${GH_PROJECT_STATUS_FIELD_NAME}' nao encontrado no projeto" && exit 1)
-          test -n "${STATUS_OPTION_ID}" && [ "${STATUS_OPTION_ID}" != "null" ] || (echo "Opcao '${GH_PROJECT_STATUS_OPTION_NAME}' nao encontrada no campo '${GH_PROJECT_STATUS_FIELD_NAME}'" && exit 1)
+          test -n "${STATUS_OPTION_ID}" && [ "${STATUS_OPTION_ID}" != "null" ] || (echo "Opcao '${GH_PROJECT_STATUS_OPTION_NAME}' nao encontrada" && exit 1)
+
           ISSUES_JSON="$(echo "$LINKED_ISSUES" | tr -d '[:space:]')"
+
           if [ -z "$ISSUES_JSON" ] || [ "$ISSUES_JSON" = "[]" ]; then
             echo "Nenhuma issue para atualizar."
             exit 0
           fi
+
           echo "$ISSUES_JSON" | jq -c '.[]' | while read -r ISSUE_OBJ; do
             ISSUE_NUMBER="$(echo "$ISSUE_OBJ" | jq -r '.number')"
             ISSUE_OWNER="$(echo "$ISSUE_OBJ" | jq -r '.owner')"
             ISSUE_REPO="$(echo "$ISSUE_OBJ" | jq -r '.repo')"
+
             echo "Processando issue #${ISSUE_NUMBER} (${ISSUE_OWNER}/${ISSUE_REPO})"
+
             gh api graphql \
               -F owner="$ISSUE_OWNER" \
               -F repo="$ISSUE_REPO" \
@@ -207,15 +232,18 @@ jobs:
                   }
                 }
               ' > issue_data.json
+
             ITEM_ID="$(jq -r --arg PROJECT_ID "$PROJECT_ID" '
               .data.repository.issue.projectItems.nodes[]
               | select(.project.id == $PROJECT_ID)
               | .id
             ' issue_data.json | head -n1)"
+
             if [ -z "${ITEM_ID}" ] || [ "${ITEM_ID}" = "null" ]; then
               echo "Issue #${ISSUE_NUMBER} (${ISSUE_OWNER}/${ISSUE_REPO}) nao esta no project ${GH_PROJECT_NUMBER}. Pulando."
               continue
             fi
+
             gh api graphql \
               -F projectId="$PROJECT_ID" \
               -F itemId="$ITEM_ID" \
@@ -237,5 +265,6 @@ jobs:
                   }
                 }
               '
+
             echo "Issue #${ISSUE_NUMBER} (${ISSUE_OWNER}/${ISSUE_REPO}) movida para CHECK RETURNS."
           done
