@@ -31,11 +31,14 @@ jobs:
           java-version: ${{ inputs.java-version }}
           cache: maven
           server-id: github-cpb-libs
-          server-username: GITHUB_ACTOR
-          server-password: GITHUB_TOKEN
+          # 1. CHUMBADO: Seu usuário dono do PAT inserido diretamente aqui
+          server-username: fabriciobs 
+          # 2. VARIÁVEL: Nome da variável que o setup-java vai ler
+          server-password: MAVEN_PASSWORD 
           settings-path: ${{ github.workspace }}
 
       - name: Build com Maven
         run: mvn -s $GITHUB_WORKSPACE/settings.xml ${{ inputs.maven-args }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # 3. INJEÇÃO: Consome o Secret da Organização que foi passado pelo "secrets: inherit"
+          MAVEN_PASSWORD: ${{ secrets.CPB_PACKAGES_READ_TOKEN }}
