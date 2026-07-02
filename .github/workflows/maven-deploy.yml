@@ -36,6 +36,13 @@ jobs:
           GH_APP_ID: ${{ secrets.GH_APP_ID }}
           GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
         run: |
+          set -euo pipefail
+
+          if [ -z "$GH_APP_ID" ] || [ -z "$GH_APP_PRIVATE_KEY" ]; then
+            echo "::error::Secrets GH_APP_ID e GH_APP_PRIVATE_KEY são obrigatórios."
+            exit 1
+          fi
+
           b64url() { base64 | tr -d '=' | tr '+/' '-_' | tr -d '\n'; }
 
           now=$(date +%s)
@@ -45,17 +52,30 @@ jobs:
             openssl dgst -sha256 -sign <(printf '%s' "$GH_APP_PRIVATE_KEY") | b64url)
           JWT="$header.$payload.$sig"
 
-          install_id=$(curl -sf \
+          installations=$(curl -sf \
             -H "Authorization: Bearer $JWT" \
             -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/app/installations" | \
+            "https://api.github.com/app/installations")
+
+          install_id=$(echo "$installations" | \
             jq -r '.[] | select(.account.login == "ComiteParalimpicoBrasileiro") | .id')
 
-          APP_TOKEN=$(curl -sf -X POST \
+          if [ -z "$install_id" ] || [ "$install_id" = "null" ]; then
+            echo "::error::GitHub App não encontrado na organização ComiteParalimpicoBrasileiro. Verifique se o app está instalado na org."
+            exit 1
+          fi
+
+          token_response=$(curl -sf -X POST \
             -H "Authorization: Bearer $JWT" \
             -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/app/installations/$install_id/access_tokens" | \
-            jq -r '.token')
+            "https://api.github.com/app/installations/$install_id/access_tokens")
+
+          APP_TOKEN=$(echo "$token_response" | jq -r '.token')
+
+          if [ -z "$APP_TOKEN" ] || [ "$APP_TOKEN" = "null" ]; then
+            echo "::error::Falha ao obter token de instalação do GitHub App."
+            exit 1
+          fi
 
           echo "::add-mask::$APP_TOKEN"
           echo "token=$APP_TOKEN" >> $GITHUB_OUTPUT
