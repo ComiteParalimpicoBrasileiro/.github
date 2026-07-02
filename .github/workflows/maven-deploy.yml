@@ -68,12 +68,16 @@ jobs:
           token_response=$(curl -sf -X POST \
             -H "Authorization: Bearer $JWT" \
             -H "Accept: application/vnd.github+json" \
+            -H "Content-Type: application/json" \
+            -d '{"permissions":{"contents":"read","packages":"write"}}' \
             "https://api.github.com/app/installations/$install_id/access_tokens")
+
+          echo "Permissões concedidas ao token: $(echo "$token_response" | jq '.permissions')"
 
           APP_TOKEN=$(echo "$token_response" | jq -r '.token')
 
           if [ -z "$APP_TOKEN" ] || [ "$APP_TOKEN" = "null" ]; then
-            echo "::error::Falha ao obter token de instalação do GitHub App."
+            echo "::error::Falha ao obter token de instalação. Verifique se o app tem a permissão 'Packages: Write' na instalação da org."
             exit 1
           fi
 
