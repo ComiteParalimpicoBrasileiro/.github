@@ -1,0 +1,49 @@
+name: Maven Deploy
+
+on:
+  workflow_call:
+    inputs:
+      java-version:
+        required: false
+        type: string
+        default: '17'
+      module-path:
+        required: true
+        type: string
+        description: 'Caminho relativo do módulo a publicar (ex: cpb-email-lib)'
+      maven-args:
+        required: false
+        type: string
+        default: 'deploy -DskipTests -B'
+    secrets:
+      CPB_PACKAGES_READ_TOKEN:
+        required: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK ${{ inputs.java-version }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ inputs.java-version }}
+          cache: maven
+          server-id: github-cpb-libs
+          server-username: GITHUB_ACTOR
+          server-password: CPB_PACKAGES_READ_TOKEN
+
+      - name: Deploy com Maven
+        working-directory: ${{ inputs.module-path }}
+        run: mvn ${{ inputs.maven-args }}
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          CPB_PACKAGES_READ_TOKEN: ${{ secrets.CPB_PACKAGES_READ_TOKEN }}
