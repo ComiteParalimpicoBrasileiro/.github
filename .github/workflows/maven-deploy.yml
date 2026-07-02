@@ -82,6 +82,20 @@ jobs:
           fi
 
           echo "::add-mask::$APP_TOKEN"
+
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml << EOF
+          <settings>
+            <servers>
+              <server>
+                <id>github-cpb-libs</id>
+                <username>x-access-token</username>
+                <password>$APP_TOKEN</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+
           echo "token=$APP_TOKEN" >> $GITHUB_OUTPUT
 
       - name: Checkout do repositório
@@ -95,23 +109,6 @@ jobs:
           echo "JAVA_HOME=${!JAVA_HOME_VAR}" >> $GITHUB_ENV
           echo "${!JAVA_HOME_VAR}/bin" >> $GITHUB_PATH
 
-      - name: Configurar Maven Settings
-        run: |
-          mkdir -p ~/.m2
-          cat > ~/.m2/settings.xml << 'EOF'
-          <settings>
-            <servers>
-              <server>
-                <id>github-cpb-libs</id>
-                <username>x-access-token</username>
-                <password>${env.MAVEN_TOKEN}</password>
-              </server>
-            </servers>
-          </settings>
-          EOF
-
       - name: Deploy com Maven
         working-directory: ${{ inputs.module-path }}
         run: mvn ${{ inputs.maven-args }}
-        env:
-          MAVEN_TOKEN: ${{ steps.app-token.outputs.token }}
