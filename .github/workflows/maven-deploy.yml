@@ -16,32 +16,16 @@ on:
         type: string
         default: 'deploy -DskipTests -B'
     secrets:
-      GH_APP_CLIENT_ID: # Atualizado para Client ID
+      CICD_MAVEN_PAT:
         required: true
-      GH_APP_PRIVATE_KEY:
-        required: true
-
-permissions:
-  contents: read
-  packages: write # Permissão crucial para conseguir publicar o pacote
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Gerar token do GitHub App
-        id: app-token
-        uses: actions/create-github-app-token@v3 # Versão 3 atualizada (Node 24)
-        with:
-          client-id: ${{ secrets.GH_APP_CLIENT_ID }}
-          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-
       - name: Checkout do repositório
         uses: actions/checkout@v4
-        with:
-          token: ${{ steps.app-token.outputs.token }}
 
       - name: Configurar JDK ${{ inputs.java-version }}
         uses: actions/setup-java@v4
@@ -49,13 +33,13 @@ jobs:
           distribution: temurin
           java-version: ${{ inputs.java-version }}
           cache: maven
-          server-id: github # Padronizado para coincidir com o pom.xml
-          server-username: x-access-token
-          server-password: GH_APP_TOKEN
+          server-id: github
+          server-username: fabriciobs # Seu usuário fixado
+          server-password: MAVEN_PAT
           settings-path: ${{ github.workspace }}
 
       - name: Deploy com Maven
         run: mvn -s $GITHUB_WORKSPACE/settings.xml ${{ inputs.maven-args }}
-        working-directory: ${{ inputs.module-path }} # Garante o deploy apenas do módulo selecionado
+        working-directory: ${{ inputs.module-path }}
         env:
-          GH_APP_TOKEN: ${{ steps.app-token.outputs.token }}
+          MAVEN_PAT: ${{ secrets.CICD_MAVEN_PAT }}

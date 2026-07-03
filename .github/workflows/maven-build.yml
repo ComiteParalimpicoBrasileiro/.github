@@ -11,33 +11,18 @@ on:
         required: false
         type: string
         default: '-B package --file pom.xml'
+    # Agora pedimos o PAT ao invés das credenciais do App
     secrets:
-      GH_APP_CLIENT_ID:
+      CICD_MAVEN_PAT:
         required: true
-      GH_APP_PRIVATE_KEY:
-        required: true
-
-permissions:
-  contents: read
-  packages: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Gerar token do GitHub App
-        id: app-token
-        uses: actions/create-github-app-token@v3
-        with:
-          client-id: ${{ secrets.GH_APP_CLIENT_ID }}
-          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-
       - name: Checkout do repositório
         uses: actions/checkout@v4
-        with:
-          token: ${{ steps.app-token.outputs.token }}
 
       - name: Configurar JDK ${{ inputs.java-version }}
         uses: actions/setup-java@v4
@@ -45,15 +30,13 @@ jobs:
           distribution: temurin
           java-version: ${{ inputs.java-version }}
           cache: maven
-          server-id: github
-          # 1. Volte para o usuário nativo que disparou a action
-          server-username: ${{ github.actor }}
-          # 2. Mapeie para ler a variável de ambiente do token nativo
-          server-password: GITHUB_TOKEN
+          server-id: github # Mantém o padrão
+          server-username: fabriciobs # Seu usuário fixado
+          server-password: MAVEN_PAT # Nome da variável que o Maven vai ler
           settings-path: ${{ github.workspace }}
 
       - name: Build com Maven
         run: mvn -s $GITHUB_WORKSPACE/settings.xml ${{ inputs.maven-args }}
         env:
-          # 3. Injete o token nativo em vez do token do App
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Injetamos o secret na variável que o setup-java configurou
+          MAVEN_PAT: ${{ secrets.CICD_MAVEN_PAT }}
