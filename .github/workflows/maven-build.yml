@@ -11,9 +11,8 @@ on:
         required: false
         type: string
         default: '-B package --file pom.xml'
-    # Declara os secrets que o workflow precisa
     secrets:
-      GH_APP_ID:
+      GH_APP_CLIENT_ID:
         required: true
       GH_APP_PRIVATE_KEY:
         required: true
@@ -29,14 +28,16 @@ jobs:
     steps:
       - name: Gerar token do GitHub App
         id: app-token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ secrets.GH_APP_ID }}
+          client-id: ${{ secrets.GH_APP_CLIENT_ID }}
           private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
 
       - name: Checkout do repositório
         uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Configurar JDK ${{ inputs.java-version }}
         uses: actions/setup-java@v4
@@ -46,10 +47,10 @@ jobs:
           cache: maven
           server-id: github
           server-username: x-access-token
-          server-password: GH_APP_GENERATED_TOKEN
+          server-password: GH_APP_TOKEN
           settings-path: ${{ github.workspace }}
 
       - name: Build com Maven
         run: mvn -s $GITHUB_WORKSPACE/settings.xml ${{ inputs.maven-args }}
         env:
-          GH_APP_GENERATED_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_APP_TOKEN: ${{ steps.app-token.outputs.token }}
