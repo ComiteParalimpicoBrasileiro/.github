@@ -33,7 +33,7 @@ jobs:
           distribution: temurin
           java-version: ${{ inputs.java-version }}
           cache: maven
-          server-id: github
+          server-id: github-cpb-libs
           server-username: fabriciobs # Seu usuário fixado
           server-password: MAVEN_PAT
           settings-path: ${{ github.workspace }}
