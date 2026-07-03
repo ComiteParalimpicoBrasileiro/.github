@@ -11,10 +11,10 @@ on:
         required: false
         type: string
         default: '-B package --file pom.xml'
-    # Agora pedimos o PAT ao invés das credenciais do App
-    secrets:
-      CICD_MAVEN_PAT:
-        required: true
+
+permissions:
+  contents: read
+  packages: read
 
 jobs:
   build:
@@ -30,13 +30,15 @@ jobs:
           distribution: temurin
           java-version: ${{ inputs.java-version }}
           cache: maven
-          server-id: github # Mantém o padrão
-          server-username: fabriciobs # Seu usuário fixado
-          server-password: MAVEN_PAT # Nome da variável que o Maven vai ler
+          server-id: github-cpb-libs
+          # 1. CHUMBADO: Seu usuário dono do PAT inserido diretamente aqui
+          server-username: fabriciobs 
+          # 2. VARIÁVEL: Nome da variável que o setup-java vai ler
+          server-password: MAVEN_PASSWORD 
           settings-path: ${{ github.workspace }}
 
       - name: Build com Maven
         run: mvn -s $GITHUB_WORKSPACE/settings.xml ${{ inputs.maven-args }}
         env:
-          # Injetamos o secret na variável que o setup-java configurou
-          MAVEN_PAT: ${{ secrets.CICD_MAVEN_PAT }}
+          # 3. INJEÇÃO: Consome o Secret da Organização que foi passado pelo "secrets: inherit"
+          MAVEN_PASSWORD: ${{ secrets.CPB_PACKAGES_READ_TOKEN }}

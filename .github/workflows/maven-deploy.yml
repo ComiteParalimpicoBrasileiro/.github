@@ -42,4 +42,4 @@ jobs:
         run: mvn -s $GITHUB_WORKSPACE/settings.xml ${{ inputs.maven-args }}
         working-directory: ${{ inputs.module-path }}
         env:
-          MAVEN_PAT: ${{ secrets.CICD_MAVEN_PAT }}
+          MAVEN_PAT: ${{ secrets.CPB_PACKAGES_READ_TOKEN }}
