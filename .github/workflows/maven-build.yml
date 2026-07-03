@@ -46,11 +46,14 @@ jobs:
           java-version: ${{ inputs.java-version }}
           cache: maven
           server-id: github
+          # 1. Volte para o usuário nativo que disparou a action
           server-username: ${{ github.actor }}
-          server-password: GH_APP_TOKEN
+          # 2. Mapeie para ler a variável de ambiente do token nativo
+          server-password: GITHUB_TOKEN
           settings-path: ${{ github.workspace }}
 
       - name: Build com Maven
         run: mvn -s $GITHUB_WORKSPACE/settings.xml ${{ inputs.maven-args }}
         env:
-          GH_APP_TOKEN: ${{ steps.app-token.outputs.token }}
+          # 3. Injete o token nativo em vez do token do App
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
