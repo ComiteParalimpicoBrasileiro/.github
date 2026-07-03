@@ -11,6 +11,7 @@ on:
         required: false
         type: string
         default: '-B package --file pom.xml'
+    # Declara os secrets que o workflow precisa
     secrets:
       GH_APP_ID:
         required: true
@@ -28,82 +29,27 @@ jobs:
     steps:
       - name: Gerar token do GitHub App
         id: app-token
-        env:
-          GH_APP_ID: ${{ secrets.GH_APP_ID }}
-          GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
-        run: |
-          set -euo pipefail
-
-          if [ -z "$GH_APP_ID" ] || [ -z "$GH_APP_PRIVATE_KEY" ]; then
-            echo "::error::Secrets GH_APP_ID e GH_APP_PRIVATE_KEY são obrigatórios."
-            exit 1
-          fi
-
-          b64url() { base64 | tr -d '=' | tr '+/' '-_' | tr -d '\n'; }
-
-          now=$(date +%s)
-          header=$(echo -n '{"alg":"RS256","typ":"JWT"}' | b64url)
-          payload=$(echo -n "{\"iat\":$((now-60)),\"exp\":$((now+540)),\"iss\":\"$GH_APP_ID\"}" | b64url)
-          sig=$(printf '%s' "$header.$payload" | \
-            openssl dgst -sha256 -sign <(printf '%s' "$GH_APP_PRIVATE_KEY") | b64url)
-          JWT="$header.$payload.$sig"
-
-          installations=$(curl -sf \
-            -H "Authorization: Bearer $JWT" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/app/installations")
-
-          install_id=$(echo "$installations" | \
-            jq -r '.[] | select(.account.login == "ComiteParalimpicoBrasileiro") | .id')
-
-          if [ -z "$install_id" ] || [ "$install_id" = "null" ]; then
-            echo "::error::GitHub App não encontrado na organização ComiteParalimpicoBrasileiro. Verifique se o app está instalado na org."
-            exit 1
-          fi
-
-          token_response=$(curl -sf -X POST \
-            -H "Authorization: Bearer $JWT" \
-            -H "Accept: application/vnd.github+json" \
-            -H "Content-Type: application/json" \
-            -d '{"permissions":{"contents":"read","packages":"read"}}' \
-            "https://api.github.com/app/installations/$install_id/access_tokens")
-
-          echo "Permissões concedidas ao token: $(echo "$token_response" | jq '.permissions')"
-
-          APP_TOKEN=$(echo "$token_response" | jq -r '.token')
-
-          if [ -z "$APP_TOKEN" ] || [ "$APP_TOKEN" = "null" ]; then
-            echo "::error::Falha ao obter token de instalação. Verifique se o app tem a permissão 'Packages: Read' na instalação da org."
-            exit 1
-          fi
-
-          echo "::add-mask::$APP_TOKEN"
-
-          mkdir -p ~/.m2
-          cat > ~/.m2/settings.xml << EOF
-          <settings>
-            <servers>
-              <server>
-                <id>github-cpb-libs</id>
-                <username>x-access-token</username>
-                <password>$APP_TOKEN</password>
-              </server>
-            </servers>
-          </settings>
-          EOF
-
-          echo "token=$APP_TOKEN" >> $GITHUB_OUTPUT
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
 
       - name: Checkout do repositório
-        run: |
-          git clone "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/${{ github.repository }}.git" .
-          git checkout ${{ github.sha }}
+        uses: actions/checkout@v4
 
       - name: Configurar JDK ${{ inputs.java-version }}
-        run: |
-          JAVA_HOME_VAR="JAVA_HOME_${{ inputs.java-version }}_X64"
-          echo "JAVA_HOME=${!JAVA_HOME_VAR}" >> $GITHUB_ENV
-          echo "${!JAVA_HOME_VAR}/bin" >> $GITHUB_PATH
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ inputs.java-version }}
+          cache: maven
+          server-id: github
+          server-username: x-access-token
+          server-password: GH_APP_GENERATED_TOKEN
+          settings-path: ${{ github.workspace }}
 
       - name: Build com Maven
-        run: mvn ${{ inputs.maven-args }}
+        run: mvn -s $GITHUB_WORKSPACE/settings.xml ${{ inputs.maven-args }}
+        env:
+          GH_APP_GENERATED_TOKEN: ${{ steps.app-token.outputs.token }}
