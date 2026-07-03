@@ -46,7 +46,7 @@ jobs:
           java-version: ${{ inputs.java-version }}
           cache: maven
           server-id: github
-          server-username: x-access-token
+          server-username: ${{ github.actor }}
           server-password: GH_APP_TOKEN
           settings-path: ${{ github.workspace }}
 
